@@ -18,10 +18,11 @@ namespace Leo.Services.Muses.Controllers
     public class SongsController : Controller
     {
 		private IMusesRepository _musesRepository;
-
-		public SongsController(IMusesRepository musesRepository)
+        private readonly IMapper _mapper;
+		public SongsController(IMusesRepository musesRepository, IMapper mapper)
 		{
 			_musesRepository = musesRepository;
+            _mapper = mapper ??  throw new ArgumentNullException(nameof(mapper));
 		}
 		public static bool IsInt(string value)
         {
@@ -33,7 +34,7 @@ namespace Leo.Services.Muses.Controllers
         {
             //return Ok(SingersDataStore.Current.Singers);
 			var songEntities = _musesRepository.GetSongsAsync().Result;
-			var results = Mapper.Map<IEnumerable<SongWithoutSingersDto>>(songEntities);
+			var results = _mapper.Map<IEnumerable<SongWithoutSingersDto>>(songEntities);
             return Ok(results);
         }
         // GET: api/values
@@ -58,10 +59,10 @@ namespace Leo.Services.Muses.Controllers
             }
 			if (includeSingers)
             {
-                var songResult = Mapper.Map<SongDto>(songEntity);
+                var songResult = _mapper.Map<SongDto>(songEntity);
                 return Ok(songResult);
             }
-            var songWithoutSingersResult = Mapper.Map<SongWithoutSingersDto>(songEntity);
+            var songWithoutSingersResult = _mapper.Map<SongWithoutSingersDto>(songEntity);
 			return Ok(songWithoutSingersResult);
         }
 
@@ -83,7 +84,7 @@ namespace Leo.Services.Muses.Controllers
             {
                 return NotFound();
             }
-            var singersResult = Mapper.Map<IEnumerable<SingerWithoutSongsDto>>(songEntity.SingerSongs.Select(ss => ss.Singer));
+            var singersResult = _mapper.Map<IEnumerable<SingerWithoutSongsDto>>(songEntity.SingerSongs.Select(ss => ss.Singer));
 			return Ok(singersResult);
         }
 
@@ -120,7 +121,7 @@ namespace Leo.Services.Muses.Controllers
                 {
                     return NotFound();
                 }
-                var singerWithoutSongsResult = Mapper.Map<SingerWithoutSongsDto>(singerEntity);
+                var singerWithoutSongsResult = _mapper.Map<SingerWithoutSongsDto>(singerEntity);
 				return Ok(singerWithoutSongsResult);
             }
         }

@@ -21,11 +21,13 @@ namespace Leo.Services.Muses.Controllers
     {
 		private IMusesRepository _musesRepository;
 		private ILogger<SingersController> _logger;
+        private readonly IMapper _mapper;
 
-        public SingersController(IMusesRepository musesRepository, ILogger<SingersController> logger)
+        public SingersController(IMusesRepository musesRepository, ILogger<SingersController> logger, IMapper mapper)
         {
 			_musesRepository = musesRepository;
             _logger = logger;
+            _mapper = mapper ??  throw new ArgumentNullException(nameof(mapper));
         }
 
         public static bool IsInt(string value)
@@ -38,7 +40,7 @@ namespace Leo.Services.Muses.Controllers
         {
 			//return Ok(SingersDataStore.Current.Singers);
 			IEnumerable<Singer> singerEntities = await _musesRepository.GetSingersAsync();
-			var results = Mapper.Map<IEnumerable<SingerWithoutSongsDto>>(singerEntities);
+			var results = _mapper.Map<IEnumerable<SingerWithoutSongsDto>>(singerEntities);
 			return Ok(results);
 
         }
@@ -66,10 +68,10 @@ namespace Leo.Services.Muses.Controllers
 				return NotFound();
 			}
 			if(includeSongs) {
-				var singerResult = Mapper.Map<SingerDto>(singerEntity);
+				var singerResult = _mapper.Map<SingerDto>(singerEntity);
 				return Ok(singerResult);
 			}
-			var singerWithoutSongsResult = Mapper.Map<SingerWithoutSongsDto>(singerEntity);
+			var singerWithoutSongsResult = _mapper.Map<SingerWithoutSongsDto>(singerEntity);
 			return Ok(singerWithoutSongsResult);
         }
 
@@ -90,7 +92,7 @@ namespace Leo.Services.Muses.Controllers
             {
                 return NotFound();
             }
-			var criticismsResult = Mapper.Map<IEnumerable<CriticismWithoutSingerDto>>(singerEntity.Criticisms);
+			var criticismsResult = _mapper.Map<IEnumerable<CriticismWithoutSingerDto>>(singerEntity.Criticisms);
 			return Ok(criticismsResult);
         }
 
@@ -132,7 +134,7 @@ namespace Leo.Services.Muses.Controllers
                 {
                     return NotFound();
                 }
-				var criticismWithoutSingerResult = Mapper.Map<CriticismWithoutSingerDto>(criticismEntity);
+				var criticismWithoutSingerResult = _mapper.Map<CriticismWithoutSingerDto>(criticismEntity);
 				return Ok(criticismWithoutSingerResult);
             }
         }
@@ -173,7 +175,7 @@ namespace Leo.Services.Muses.Controllers
 					return BadRequest("This criticism already exists: " + criticismOfSinger.Critic + "->" + criticismOfSinger.Opinion);
 				}
 				//var maxSongOfSingerId = SingersDataStore.Current.Singers.SelectMany(s => s.Songs).Max(s => s.Id);
-				var finalCriticismOfSinger = Mapper.Map<Entities.Criticism>(criticismOfSinger);
+				var finalCriticismOfSinger = _mapper.Map<Entities.Criticism>(criticismOfSinger);
 				//singerToReturn.Songs.Add(finalSongOfSinger);
 
 				if (IsInt(singerIdOrName))
@@ -190,7 +192,7 @@ namespace Leo.Services.Muses.Controllers
 				{
 					return StatusCode(500, "A problem happened while handling your request.");
 				}
-				var createdCriticismofSingerToReturn = Mapper.Map<Models.CriticismWithoutSingerDto>(finalCriticismOfSinger);
+				var createdCriticismofSingerToReturn = _mapper.Map<Models.CriticismWithoutSingerDto>(finalCriticismOfSinger);
 
 				return CreatedAtRoute("GetCriticismOfSinger", new { singerIdOrName = singerIdOrName, criticismId = createdCriticismofSingerToReturn.Id }, createdCriticismofSingerToReturn);
             }  
@@ -215,7 +217,7 @@ namespace Leo.Services.Muses.Controllers
             {
                 return NotFound();
             }
-			var songsResult = Mapper.Map<IEnumerable<SongWithoutSingersDto>>(singerEntity.SingerSongs.Select(ss => ss.Song));
+			var songsResult = _mapper.Map<IEnumerable<SongWithoutSingersDto>>(singerEntity.SingerSongs.Select(ss => ss.Song));
 			return Ok(songsResult);
         }
 
@@ -256,7 +258,7 @@ namespace Leo.Services.Muses.Controllers
                 {
                     return NotFound();
                 }
-				var songWithoutSingersResult = Mapper.Map<SongWithoutSingersDto>(songEntity);
+				var songWithoutSingersResult = _mapper.Map<SongWithoutSingersDto>(songEntity);
 				return Ok(songWithoutSingersResult);
             }
         }
@@ -307,7 +309,7 @@ namespace Leo.Services.Muses.Controllers
 					return BadRequest("This song already exists: " + songOfSinger.Name);
 				}
 				//var maxSongOfSingerId = SingersDataStore.Current.Singers.SelectMany(s => s.Songs).Max(s => s.Id);
-				var finalSongOfSinger = Mapper.Map<Entities.Song>(songOfSinger);
+				var finalSongOfSinger = _mapper.Map<Entities.Song>(songOfSinger);
 				//singerToReturn.Songs.Add(finalSongOfSinger);
 
 				if (IsInt(singerIdOrName))
@@ -324,7 +326,7 @@ namespace Leo.Services.Muses.Controllers
 				{
 					return StatusCode(500, "A problem happened while handling your request.");
 				}
-				var createdSongofSingerToReturn = Mapper.Map<Models.SongWithoutSingersDto>(finalSongOfSinger);
+				var createdSongofSingerToReturn = _mapper.Map<Models.SongWithoutSingersDto>(finalSongOfSinger);
 
 				return CreatedAtRoute("GetSongOfSinger", new { singerIdOrName = singerIdOrName, songIdOrName = createdSongofSingerToReturn.Name }, createdSongofSingerToReturn);
             }  
@@ -402,7 +404,7 @@ namespace Leo.Services.Muses.Controllers
                 {
 					songEntity = _musesRepository.GetSongAsync(songIdOrName, false).Result;
                 }
-				Mapper.Map(songOfSinger, songEntity);
+				_mapper.Map(songOfSinger, songEntity);
 
                 //songToReturn.Name = songOfSinger.Name;
                 //songToReturn.TranslatedName = songOfSinger.TranslatedName;
@@ -491,7 +493,7 @@ namespace Leo.Services.Muses.Controllers
                 {
                     songEntity = _musesRepository.GetSongAsync(songIdOrName, false).Result;
                 }
-				var songOfSingerToPatch = Mapper.Map<SongDtoForEdit>(songEntity);
+				var songOfSingerToPatch = _mapper.Map<SongDtoForEdit>(songEntity);
 
                 //var songOfSingerToPatch = new SongDtoForEdit()
                 //{
@@ -530,7 +532,7 @@ namespace Leo.Services.Muses.Controllers
                     return BadRequest(ModelState);
                 }
 
-                Mapper.Map(songOfSingerToPatch, songEntity);
+                _mapper.Map(songOfSingerToPatch, songEntity);
 
                 //songToReturn.Name = songOfSingerToPatch.Name;
                 //songToReturn.TranslatedName = songOfSingerToPatch.TranslatedName;
@@ -646,7 +648,7 @@ namespace Leo.Services.Muses.Controllers
                     return NotFound();
                 }
                 await _musesRepository.DeleteCriticismAsync(criticismEntity);
-				// var criticismWithoutSingerResult = Mapper.Map<CriticismWithoutSingerDto>(criticismEntity);
+				// var criticismWithoutSingerResult = _mapper.Map<CriticismWithoutSingerDto>(criticismEntity);
 				if(!await _musesRepository.SaveAsync())
 				{
 					return StatusCode(500, "A problem happened while handling your request.");

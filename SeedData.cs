@@ -6,12 +6,13 @@ using Leo.Services.Muses.Entities;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace Leo.Services.Muses
 {
     public static class SeedData
     {
-		public static IWebHost EnsureSeedDataForMuses(this IWebHost host)
+		public static IHost EnsureSeedDataForMuses(this IHost host)
         {
             using (var scope = host.Services.CreateScope())
             {

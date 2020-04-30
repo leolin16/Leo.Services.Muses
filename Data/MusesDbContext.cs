@@ -9,11 +9,14 @@ namespace Leo.Services.Muses.Data
 {
     public class MusesDbContext : DbContext
     {
-        public static readonly LoggerFactory MyConsoleLoggerFactory
-            = new LoggerFactory(new[] {
-                new ConsoleLoggerProvider((category, level)
-                    => category == DbLoggerCategory.Database.Command.Name
-                    && level == LogLevel.Error, true) });
+        public static readonly ILoggerFactory MyConsoleLoggerFactory
+            =  LoggerFactory.Create(builder =>
+            {
+                builder.AddFilter((category, level) =>
+                    category == DbLoggerCategory.Database.Command.Name
+                    && level == LogLevel.Error)
+                       .AddConsole();
+            });
         public DbSet<Singer> Singers { get; set; }
         public DbSet<Song> Songs { get; set; }
         public DbSet<Criticism> Criticisms { get; set; }
